@@ -1,9 +1,9 @@
 import Head from "next/head";
 import Link from "next/link";
+const { Client } = require("@notionhq/client");
+const notion = new Client({ auth: process.env.NOTION_API_KEY });
 
 export default function Home({ list }) {
-  console.log(list);
-
   return (
     <div>
       <Head>
@@ -16,13 +16,13 @@ export default function Home({ list }) {
         <ul className="mt-7 transform -translate-x-5">
           {list.map((item) => (
             <li className="hover:bg-gray-200 transition-colors" key={item.id}>
-              <Link href={`/${item.properties.Slug?.rich_text[0]?.plain_text}`}>
+              <Link href={`/${item.properties.Slug.rich_text[0].plain_text}`}>
                 <a className="block px-5 py-4">
                   <h2 className="text-xl font-medium">
-                    {item.properties.Name?.title[0]?.plain_text}
+                    {item.properties.Name.title[0].plain_text}
                   </h2>
                   <p className="text-gray-500 flex items-center spax">
-                    {item.properties.Author?.created_by?.name}
+                    {item.properties.Author.created_by.name}
                   </p>
                 </a>
               </Link>
@@ -35,11 +35,13 @@ export default function Home({ list }) {
 }
 
 export async function getStaticProps() {
-  const list = await (await fetch("http://localhost:3000/api/posts")).json();
+  const list = await notion.databases.query({
+    database_id: process.env.NOTION_DATABASE,
+  });
 
   return {
     props: {
-      list,
+      list: list.results,
     },
   };
 }
